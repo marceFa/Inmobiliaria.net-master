@@ -48,17 +48,27 @@ namespace Inmobiliaria.Api
             }
         }
 
-        // GET api/<PagoController>/5
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
+        // GET api/<PagoController>
+        [HttpGet("Inmueble/{id}")]
+        public async Task<ActionResult<IEnumerable<Contrato>>> GetPagosPorInmueble(int id)
         {
             try
             {
-                var usuario = User.Identity.Name;
-                var res = contexto.Pagos.Include(e => e.Contratos)
-                                       .Where(e => e.Contratos.Inmuebles.Propietarios.Email == usuario && e.idContrato == id)
-                                       .Select(x => new { x.Numero, x.FechaDePago, x.Importe });
-                return Ok(res);
+                    var pago = await contexto.Pagos
+                    .Include(pagos => pagos.Contratos)
+                    .Include(pagos => pagos.Contratos.Inmuebles)
+                    .Include(pagos => pagos.Contratos.Inmuebles.Propietarios)
+                    .Include(pagos => pagos.Contratos.Inquilinos)
+                    .Where(pagos => pagos.Contratos.idInmueble == id && pagos.Contratos.Inmuebles.Propietarios.Email == User.Identity.Name && pagos.Contratos.FechaInicio <= DateTime.Now && pagos.Contratos.FechaFin >= DateTime.Now)
+                    .ToListAsync();
+
+                    if(pago == null)
+                    { 
+                    return NotFound("No se registraron pagos");
+
+
+                    }
+                    return Ok(pago);
             }
             catch (Exception ex)
             {
@@ -68,25 +78,12 @@ namespace Inmobiliaria.Api
 
         // POST api/<PagoController>
         [HttpPost]
-        public async Task<IActionResult> Post([FromForm] Pago pagos)
+        public async Task<ActionResult<Pago>>PostPago (Pago pagos)
         {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    var usuario = User.Identity.Name;
-                    pagos.idContrato = contexto.Contratos.FirstOrDefault(e => e.Inmuebles.Propietarios.Email == User.Identity.Name).idContrato;
-                    contexto.Pagos.Add(pagos);
-                    contexto.SaveChanges();
-                    return CreatedAtAction(nameof(Get), new { id = pagos.idPago }, pagos);
-                }
+            contexto.Pagos.Add(pagos);
+            await contexto.SaveChangesAsync();
 
-                return BadRequest();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex);
-            }
+            return CreatedAtAction("GetPago", new { id = pagos.idPago }, pagos);
         }
 
         // PUT api/<PagoController>/4
