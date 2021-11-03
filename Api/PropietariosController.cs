@@ -82,7 +82,9 @@ namespace Inmobiliaria.Api
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginView loginView)
         {
-            
+            Propietario prop = contexto.Propietarios.FirstOrDefault(x => x.Email == loginView.Email);
+            if (prop != null)
+            {
 
                 try
                 {
@@ -94,8 +96,8 @@ namespace Inmobiliaria.Api
                        prf: KeyDerivationPrf.HMACSHA1,
                        iterationCount: 1000,
                        numBytesRequested: 256 / 8));
-                    var prop = contexto.Propietarios.FirstOrDefault(x => x.Email == loginView.Email);
-                    if (prop == null || prop.Clave != hashed)
+                    var us = contexto.Usuarios.FirstOrDefault(x => x.Email == loginView.Email);
+                    if (us == null || us.Clave != hashed)
                     {
                         return BadRequest("Email y / o Contraseña incorrecta");
                     }
@@ -125,8 +127,15 @@ namespace Inmobiliaria.Api
                 {
                     return BadRequest(ex);
                 }
-            
+            }
+            else
+            {
+                return BadRequest("Este Usuario no es un Propietario");
+
+            }
         }
+
+
 
 
         // POST api/<PropietariosController>/login
