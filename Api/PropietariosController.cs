@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Policy;
 using System.Threading.Tasks;
 using Inmobiliaria.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -24,6 +25,7 @@ namespace Inmobiliaria.Api
     {
         private readonly DataContext contexto;
         private readonly IConfiguration config;
+        private string hashed;
 
         public PropietariosController(DataContext contexto, IConfiguration config)
         {
@@ -81,7 +83,10 @@ namespace Inmobiliaria.Api
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginView loginView)
         {
-            
+            Propietario p = contexto.Propietarios.FirstOrDefault(x => x.Email == loginView.Email);
+            if (p != null)
+            {
+
                 try
                 {
 
@@ -92,25 +97,20 @@ namespace Inmobiliaria.Api
                        prf: KeyDerivationPrf.HMACSHA1,
                        iterationCount: 1000,
                        numBytesRequested: 256 / 8));
-                    var p = contexto.Propietarios.FirstOrDefault(x => x.Email == loginView.Email);
-                    string hashed2 = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                       password: loginView.Clave,
-                       salt: System.Text.Encoding.ASCII.GetBytes(config["Salt"]),
-                       prf: KeyDerivationPrf.HMACSHA1,
-                       iterationCount: 1000,
-                       numBytesRequested: 256 / 8));
-                    if (p == null || hashed1 != hashed2)
+                    var us = contexto.Usuarios.FirstOrDefault(x => x.Email == loginView.Email);
+                    if (us == null || us.Clave != hashed)
                     {
-                        return BadRequest("Email y/o Contraseña incorrecta");
+                        return BadRequest("Email y / o Contraseña incorrecta");
                     }
                     else
                     {
+                        
                         var key = new SymmetricSecurityKey(System.Text.Encoding.ASCII.GetBytes(config["TokenAuthentication:SecretKey"]));
                         var credenciales = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
                         var claims = new List<Claim>
                     {
-                        new Claim(ClaimTypes.Name, p.Email),
-                        new Claim("FullName", p.Nombre + " " + p.Apellido),
+                        new Claim(ClaimTypes.Name, us.Email),
+                        new Claim("FullName", us.Nombre + " " + us.Apellido),
                         new Claim(ClaimTypes.Role, "Propietario"),
                     };
 
@@ -129,6 +129,12 @@ namespace Inmobiliaria.Api
                     return BadRequest(ex);
                 }
             }
+            else
+            {
+                return BadRequest("Este Usuario no es un Propietario");
+
+            }
+        }
 
 
         // POST api/<PropietariosController>/login

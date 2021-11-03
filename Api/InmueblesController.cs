@@ -97,22 +97,6 @@ namespace Inmobiliaria.Api
 
         }
 
-        //GET InmueblesController/11
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Contrato>> GetObtenerTodosPorInm(int idInmueble)
-        {
-            try
-            {
-
-                var list = await contexto.Contratos.Include(e => e.Inquilinos).Include(e => e.Inmuebles).Where(e => e.idInmueble == idInmueble).ToListAsync();
-                return Ok(list);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex);
-            }
-        }
-
         // POST api/<controller>
         [HttpPost]
         public async Task<IActionResult> Post(Inmueble entidad)
@@ -124,7 +108,7 @@ namespace Inmobiliaria.Api
                     entidad.id = contexto.Propietarios.Single(e => e.Email == User.Identity.Name).id;
                     contexto.Inmuebles.Add(entidad);
                     contexto.SaveChanges();
-                    return CreatedAtAction(nameof(Get), new { id = entidad.id }, entidad);
+                    return CreatedAtAction(nameof(Get), new { id = entidad.idInmueble }, entidad);
                 }
                 return BadRequest();
             }
