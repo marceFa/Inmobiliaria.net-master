@@ -108,8 +108,8 @@ namespace Inmobiliaria.Api
                         var credenciales = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
                         var claims = new List<Claim>
                     {
-                        new Claim(ClaimTypes.Name, prop.Email),
-                        new Claim("FullName", prop.Nombre + " " + prop.Apellido),
+                        new Claim(ClaimTypes.Name, us.Email),
+                        new Claim("FullName", us.Nombre + " " + us.Apellido),
                         new Claim(ClaimTypes.Role, "Propietario"),
                     };
 
