@@ -1,5 +1,6 @@
 ﻿using Inmobiliaria.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -50,19 +51,19 @@ namespace Inmobiliaria.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    
                     int res = repositorioPropietario.Alta(p);
                     return RedirectToAction(nameof(Index));
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Error de registro Verifique datos!!!");
-                    return View();
+                    return View(p);
                 }
 
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                return View(p);
             }
         }
 
