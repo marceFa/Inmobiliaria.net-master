@@ -97,7 +97,7 @@ namespace Inmobiliaria.Api
                        iterationCount: 1000,
                        numBytesRequested: 256 / 8));
                     var us = contexto.Usuarios.FirstOrDefault(x => x.Email == loginView.Email);
-                    if (us == null || us.Clave != hashed)
+                    if (us == null)
                     {
                         return BadRequest("Email y / o Contraseña incorrecta");
                     }
