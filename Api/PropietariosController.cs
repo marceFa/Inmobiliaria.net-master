@@ -37,23 +37,10 @@ namespace Inmobiliaria.Api
         {
             try
             {
-                /*contexto.Inmuebles
-                    .Include(x => x.Duenio)
-                    .Where(x => x.Duenio.Nombre == "")//.ToList() => lista de inmuebles
-                    .Select(x => x.Duenio)
-                    .ToList();//lista de propietarios
-                var usuario = User.Identity.Name;
-                var res = contexto.Propietario.Select(x => new { x.Nombre, x.Apellido, x.Email }).SingleOrDefault(x => x.Email == usuario);
-                return Ok(res); */
-                // return contexto.Propietario;
 
                 var usuario = User.Identity.Name;
-                var propietario = contexto.Propietarios.FirstOrDefault(x => x.Email == usuario);
-
-
-
-                return Ok(propietario);
-
+                var res = contexto.Propietarios.FirstOrDefault(x => x.Email == usuario);
+                return Ok(res);
             }
             catch (Exception ex)
             {
@@ -61,23 +48,7 @@ namespace Inmobiliaria.Api
             }
         }
 
-        
-
-        // GET api/<PropietariosController>/GetAll
-        [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAll()
-        {
-            try
-            {
-                return Ok(await contexto.Propietarios.ToListAsync());
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex);
-            }
-        }
-
-        // POST api/<PropietariosController>/login
+        // POST: api/<PropietariosController>/login
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginView loginView)
@@ -161,7 +132,7 @@ namespace Inmobiliaria.Api
 
         // POST api/<PropietariosController>
         [HttpPost]
-        public async Task<IActionResult> Post([FromForm] Propietario entidad)
+        public async Task<IActionResult> Post(Propietario entidad)
         {
             try
             {
@@ -180,15 +151,20 @@ namespace Inmobiliaria.Api
         }
 
         // PUT api/<PropietariosController>/1
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] Propietario entidad)
+        [HttpPut("editar")]
+        public async Task<IActionResult> Put([FromForm] Propietario entidad)
         {
             try
             {
-                if (ModelState.IsValid)
+                var usuario = User.Identity.Name;
+                var res = contexto.Propietarios.AsNoTracking().FirstOrDefault(x => x.Email == usuario);
+
+                if (ModelState.IsValid && res != null)
                 {
-                    entidad.id = id;
-                    contexto.Propietarios.Update(entidad);
+                    entidad.id = res.id;
+                    entidad.Email = res.Email;
+                    contexto.Entry(entidad).State = EntityState.Modified;
+                    //contexto.Propietarios.Update(entidad);
                     await contexto.SaveChangesAsync();
                     return Ok(entidad);
                 }

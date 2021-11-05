@@ -88,30 +88,53 @@ namespace Inmobiliaria.Api
 
         // PUT api/<PagoController>/4
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromForm] Pago pagos)
+        public async Task<IActionResult> PutPago(int id,  Pago pago)
         {
-            try
+            if (id != pago.idPago)
             {
-                if (ModelState.IsValid && contexto.Pagos.AsNoTracking().Include(e => e.Contratos.Inmuebles).ThenInclude(x => x.Propietarios).FirstOrDefault(e => e.idPago == id && e.Contratos.Inmuebles.Propietarios.Email == User.Identity.Name) != null)
-                {
-
-                    pagos.idPago = id;
-                    contexto.Pagos.Update(pagos);
-                    contexto.SaveChanges();
-                    return Ok(pagos);
-                }
                 return BadRequest();
             }
-            catch (Exception ex)
+
+            contexto.Entry(pago).State = EntityState.Modified;
+
+            try
             {
-                return BadRequest(ex);
+                await contexto.SaveChangesAsync();
             }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!PagoExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
 
         // DELETE api/<PagoController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<ActionResult<Pago>> DeletePago(int id)
         {
+            var pago = await contexto.Pagos.FindAsync(id);
+            if (pago == null)
+            {
+                return NotFound();
+            }
+
+            contexto.Pagos.Remove(pago);
+            await contexto.SaveChangesAsync();
+
+            return pago;
+        }
+
+        private bool PagoExists(int id)
+        {
+            return contexto.Pagos.Any(e => e.idPago == id);
         }
     }
 }

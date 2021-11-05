@@ -28,24 +28,18 @@ namespace Inmobiliaria.Api
 
         // GET: api/<InquilinosController>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Inquilino>>> Get()
+        public async Task<ActionResult> Get()
         {
             try
             {
-                var inquilinos = await contexto.Contratos
-                    .Include(contratos => contratos.Inmuebles)
-                    .ThenInclude(inmuebles => inmuebles.Propietarios)
-                    .Include(contratos => contratos.Inquilinos)
-                    .Where(contratos => contratos.Inmuebles.Propietarios.Email == User.Identity.Name && contratos.FechaFin <= DateTime.Now && contratos.FechaFin >= DateTime.Now)
-                    .Select(contratos => new { contratos.Inmuebles, contratos.Inquilinos })
-                    .ToListAsync();
-
-                if (inquilinos == null)
-                {
-                    return NotFound("No existen inquilinos");
-                }
-
-                return Ok(inquilinos);
+                var usuario = User.Identity.Name;
+                //var res = contexto.Inquilinos.Select(x => new { x.Nombre, x.Apellido, x.Email }).SingleOrDefault(x => x.Email == inquilino);
+                var res = contexto.Contratos.Include(x => x.Inquilinos)
+                         .Include(e => e.Inmuebles.Propietarios)
+                         .Where(e => e.Inmuebles.Propietarios.Email == usuario)
+                         .Select(x => x.Inquilinos).Distinct()
+                         .ToList();
+                return Ok(res);
             }
             catch (Exception ex)
             {
