@@ -61,32 +61,27 @@ namespace Inmobiliaria.Api
 
         //Me sirve para modificar todos los campos
         [HttpPut("modificarDisponible/{id}")]
-        public async Task<IActionResult> ModificarDisponible(int id, [FromForm] Inmueble inmueble)
+        public async Task<IActionResult> ModificarDisponible(int id)
         {
-            var inm = contexto.Inmuebles.AsNoTracking().Include(e => e.Propietarios).FirstOrDefault(e => e.idInmueble == id && e.Propietarios.Email == User.Identity.Name);
-           
+                       
             try
             {
+                var inm = contexto.Inmuebles.AsNoTracking().Include(e => e.Propietarios).FirstOrDefault(e => e.idInmueble == id && e.Propietarios.Email == User.Identity.Name);
+               
                 if (ModelState.IsValid && inm != null)
                 {
-                    inmueble.idInmueble = inm.idInmueble;
-                    inmueble.id = inm.id;
-                    inmueble.Direccion = inm.Direccion;
-                    inmueble.Tipo = inm.Tipo;
-                    inmueble.Uso = inm.Uso;
-                    inmueble.Ambientes = inm.Ambientes;
-                    inmueble.Precio = inm.Precio;
+                    
                     if (inm.Disponible)
                     {
-                        inmueble.Disponible = false;
+                        inm.Disponible = false;
                     }
                     else
                     {
-                        inmueble.Disponible = true;
+                        inm.Disponible = true;
                     }
-                    contexto.Entry(inmueble).State = EntityState.Modified;
+                    contexto.Entry(inm).State = EntityState.Modified;
                     await contexto.SaveChangesAsync();
-                    return Ok(inmueble);
+                    return Ok(inm);
                 }
                 return BadRequest();
             }
@@ -120,16 +115,20 @@ namespace Inmobiliaria.Api
 
         // PUT api/<InmublesController>/11
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, Inmueble entidad)
+        public async Task<IActionResult> Put(int id, [FromBody] Inmueble inmueble)
         {
+            var inm = contexto.Inmuebles.AsNoTracking().Include(e => e.Propietarios).FirstOrDefault(e => e.idInmueble == id && e.Propietarios.Email == User.Identity.Name);
+
             try
             {
-                if (ModelState.IsValid && contexto.Inmuebles.AsNoTracking().Include(e => e.Propietarios).FirstOrDefault(e => e.id == id && e.Propietarios.Email == User.Identity.Name) != null)
+                if (ModelState.IsValid && inm != null)
                 {
-                    entidad.id = id;
-                    contexto.Inmuebles.Update(entidad);
-                    contexto.SaveChanges();
-                    return Ok(entidad);
+                    inmueble.idInmueble = inm.idInmueble;
+                    inmueble.id = inm.id;
+                    inmueble.Disponible = inm.Disponible;
+                    contexto.Entry(inmueble).State = EntityState.Modified;
+                    await contexto.SaveChangesAsync();
+                    return Ok(inmueble);
                 }
                 return BadRequest();
             }
@@ -138,6 +137,7 @@ namespace Inmobiliaria.Api
                 return BadRequest(ex);
             }
         }
+
 
         // DELETE api/<controller>/12
         [HttpDelete("{id}")]
