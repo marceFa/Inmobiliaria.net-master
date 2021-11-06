@@ -2,34 +2,10 @@
 
 
         // GET: api/<ContratosController>
-        [HttpGet("inmueble/{id}")]
-        public async Task<ActionResult<IEnumerable<Contrato>>> GetTodosPorInmueble(int id)
-        {
-            try
-            {
-                var contrato = await contexto.Contratos
-                .Include(cont => cont.Inmuebles)
-                .Include(cont => cont.Inquilinos)
-                .Include(cont => cont.Inmuebles.Propietarios)
-                .Where(cont => cont.idInmueble == id && cont.Inmuebles.Propietarios.Email == User.Identity.Name)
-                .FirstOrDefaultAsync();
-                if (contrato.FechaFin < DateTime.Now)
-                {
-                    contrato.Vigente = false;
-                }
-                else if (contrato == null || contrato.Inmuebles.Propietarios.Email != User.Identity.Name)
-                {
-                    return NotFound("No existen contratos vigentes");
-                }
+        // GET: api/Contratos/
+        [HttpGet("Vigentes")]        public async Task<ActionResult<IEnumerable<Contrato>>> GetContratosVigentes()        {            try            {                var usuario = User.Identity.Name;                var contrato = contexto.Contratos                .Include(cont => cont.Inmuebles)                .Include(cont => cont.Inquilinos)                .Include(cont => cont.Inmuebles.Propietarios)                .Where(cont => cont.FechaInicio <= DateTime.Now && cont.FechaFin >= DateTime.Now && cont.Inmuebles.Propietarios.Email == usuario);
 
-                return Ok(contrato);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex);
-            }
-        }
-
+                if (contrato == null)                {                    return NotFound("No existen contratos vigentes");                }                return Ok(contrato);            }            catch (Exception ex)            {                return BadRequest(ex);            }        }
 
         [HttpGet("vigente/{id}")]
         public async Task<ActionResult<IEnumerable<Contrato>>> GetContratoVigentePorInmueble(int id)
@@ -52,11 +28,7 @@
                 return BadRequest(ex);
             }
         }
-        // GET: api/Contratos/
-        [HttpGet("Vigentes")]        public async Task<ActionResult<IEnumerable<Contrato>>> GetContratosVigentes()        {            try            {                var usuario = User.Identity.Name;                var contrato = contexto.Contratos                .Include(cont => cont.Inmuebles)                .Include(cont => cont.Inquilinos)                .Include(cont => cont.Inmuebles.Propietarios)                .Where(cont => cont.FechaInicio <= DateTime.Now && cont.FechaFin >= DateTime.Now && cont.Inmuebles.Propietarios.Email == usuario);
-                
-                if (contrato == null)                {                    return NotFound("No existen contratos vigentes");                }                return Ok(contrato);            }            catch (Exception ex)            {                return BadRequest(ex);            }        }
-
+        
         // POST api/<ContratosController>
         [HttpPost("{id}")]        public async Task<ActionResult<Contrato>>Get(int id)        {            var contrato = await contexto.Contratos.FindAsync(id);            if (contrato == null)            {                return NotFound();            }            return contrato;        }                // PUT api/<ContratosController>/1        [HttpPut("{id}")]        public async Task<IActionResult> Put(int id, Contrato contrato)        {            if (id != contrato.idContrato)
                 {
