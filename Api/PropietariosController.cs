@@ -152,7 +152,7 @@ namespace Inmobiliaria.Api
 
         // PUT api/<PropietariosController>/1
         [HttpPut("editar")]
-        public async Task<IActionResult> Put([FromForm] Propietario entidad)
+        public async Task<IActionResult> Put([FromBody] Propietario entidad)
         {
             try
             {

@@ -47,18 +47,23 @@ namespace Inmobiliaria.Api
             }
         }
 
-        // GET api/<InquilinoController>/1
+        // GET api/<InquilinosController>/1
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
             if (id <= 0)
                 return NotFound();
+
             var res = contexto.Inquilinos.FirstOrDefault(x => x.idInquilino == id);
 
             if (res != null)
+            {
                 return Ok(res);
+            }
             else
-                return NotFound();
+                {
+                    return NotFound();
+            }
 
 
         }

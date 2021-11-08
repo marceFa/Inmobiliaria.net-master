@@ -64,10 +64,11 @@ namespace Inmobiliaria.Api
             {
                 var usuario = User.Identity.Name;
                 var contrato = contexto.Contratos
-                .Include(cont => cont.Inmuebles)
                 .Include(cont => cont.Inquilinos)
+                .Include(cont => cont.Inmuebles)
                 .Include(cont => cont.Inmuebles.Propietarios)
-                .Where(cont => cont.idInmueble == id && cont.FechaInicio <= DateTime.Now && cont.FechaFin >= DateTime.Now && cont.Inmuebles.Propietarios.Email == usuario);
+                .Where(cont => cont.Inmuebles.Propietarios.Email == usuario)
+                .Single(e => e.idContrato == id);
                 //.FirstOrDefaultAsync();
 
 

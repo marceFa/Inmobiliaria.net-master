@@ -24,9 +24,9 @@ namespace Inmobiliaria.Api
         {
             this.contexto = contexto;
         }
-        // GET: api/<PagosController>
+        // GET: api/<PagoController>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Pago>>> GetPagos()
+        public async Task<ActionResult<IEnumerable<Pago>>> Pagos()
         {
             try
             {
@@ -49,32 +49,41 @@ namespace Inmobiliaria.Api
         }
 
         // GET api/<PagoController>
-        [HttpGet("Inmueble/{id}")]
-        public async Task<ActionResult<IEnumerable<Contrato>>> GetPagosPorInmueble(int id)
+        [HttpGet("{id}")]
+        public async Task<ActionResult> Get(int id)
+
         {
             try
             {
-                    var pago = await contexto.Pagos
-                    .Include(pagos => pagos.Contratos)
-                    .Include(pagos => pagos.Contratos.Inmuebles)
-                    .Include(pagos => pagos.Contratos.Inmuebles.Propietarios)
-                    .Include(pagos => pagos.Contratos.Inquilinos)
-                    .Where(pagos => pagos.Contratos.idInmueble == id && pagos.Contratos.Inmuebles.Propietarios.Email == User.Identity.Name && pagos.Contratos.FechaInicio <= DateTime.Now && pagos.Contratos.FechaFin >= DateTime.Now)
+                    var usuario = User.Identity.Name;
+                    var res = await contexto.Pagos
+                    .Include(e => e.Contratos)
+                    .Where(e => e.Contratos.Inmuebles.Propietarios.Email == usuario && e.idContrato == id)
+                    .Select(x => new 
+                    {
+                        x.idPago,
+                        x.Numero,
+                        x.idContrato,
+                        x.Importe,
+                        x.FechaDePago
+
+                    })
                     .ToListAsync();
+                if (res == null)
+                {
+                    return NotFound("No hay pagos");
+                }
 
-                    if(pago == null)
-                    { 
-                    return NotFound("No se registraron pagos");
-
-
-                    }
-                    return Ok(pago);
+                return Ok(res);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex);
             }
         }
+
+            
+
 
         // POST api/<PagoController>
         [HttpPost]
